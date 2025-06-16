@@ -1,0 +1,36 @@
+**Prompt à copier‑coller pour demander à ChatGPT (ou à ton équipe) comment améliorer PiCarX Studio :**
+
+> **Contexte :**
+> Je développe **PiCarX Studio**, une application PyQt5/Flask qui simule et contrôle mon robot PiCarX. Le back‑end (physique, websocket, nœuds ROS) et le code métier sont fonctionnels, mais :
+>
+> 1. Le robot ne bouge pas à l’écran (la boucle de rendu ou les callbacks ne rafraîchissent pas la position).
+> 2. L’interface est confuse : panneaux dispersés, couleurs sans contraste, pas de retours visuels quand j’appuie sur les flèches ou START/STOP.
+> 3. L’éditeur Python est trop basique (pas de coloration, pas d’autocomplétion, pas de linting en direct).
+> 4. La liste des scénarios est illisible et non filtrable.
+> 5. Il n’y a aucun log ou feedback d’erreur en direct.
+
+> **Objectif :**
+> Propose-moi, **étape par étape**, des instructions claires pour :
+>
+> * Refondre la **structure de `launch.py`** (ajout d’`argparse`, `logging`, modes headless/verbose, update-check).
+> * Mettre en place une **boucle de rendu** récurrente (via `QTimer` ou thread) qui appelle `robot.advance()` et `update()` pour que le robot se déplace réellement.
+> * Repenser le **layout global** avec `QSplitter` et grilles, pour organiser les panneaux “Contrôle”, “Visualisation”, “Scénarios” et “Logs”.
+> * Définir une **palette de couleurs** accessible (themes clair/sombre), avec CSS pour boutons, surlignages et états “pressé”.
+> * Remplacer l’éditeur par un composant **QScintilla** (ou équivalent) pour :
+>
+>   * Coloration syntaxique Python
+>   * Autocomplétion des API PiCarX
+>   * Linting/erreurs en direct
+> * Transformer la **liste de scénarios** en `QListView` + `QSortFilterProxyModel` pour :
+>
+>   * Filtrer par tags, recherche textuelle, aperçu en tooltip
+>   * Drag‑&‑drop pour réordonner
+> * Ajouter un **panneau “Console & Logs”** mis à jour en temps réel via `logging` et `QTextBrowser`, avec boutons “Effacer” et “Exporter”.
+> * Intégrer de **petits toasts/overlays** (Qt ou CSS) pour notifier l’utilisateur des actions (commande envoyée, script lancé, erreur).
+> * Proposer une **stratégie de tests UI** (pytest‑qt) et un **workflow CI/CD** avec packaging (PyInstaller ou nuitka).
+
+> **Ton attendu :**
+>
+> * Réponse **didactique** (étapes numérotées, snippets de code).
+> * Ton **motivant**, légèrement lyrique, orienté “Gen Z” (moderne, interactif), mais sans édulcorer les contraintes techniques.
+> * Vision **traditionnelle** et **futuriste** : architecture propre, évolutive, tests et automatisation.
