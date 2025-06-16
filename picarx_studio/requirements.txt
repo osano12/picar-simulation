@@ -1,0 +1,28 @@
+# PiCarX Studio Requirements
+
+# Interface graphique
+PyQt6>=6.4.0
+
+# Calculs scientifiques et simulation
+numpy>=1.21.0
+
+# Interface web (pour compatibilité avec l'existant)
+flask>=2.0.0
+flask-socketio>=5.0.0
+
+# Traitement d'images (optionnel pour la vision)
+opencv-python>=4.5.0
+Pillow>=8.0.0
+
+# Communication série (pour le robot réel)
+pyserial>=3.5
+
+# Configuration et logging
+pyyaml>=6.0
+
+# Développement et tests
+pytest>=6.0.0
+black>=22.0.0
+
+# Packaging
+pyinstaller>=5.0.0
