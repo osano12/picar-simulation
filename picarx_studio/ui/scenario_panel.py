@@ -512,9 +512,33 @@ defi_vitesse()
             
     def filter_scenarios(self, category):
         """Filtrer les scénarios par catégorie"""
-        # Pour l'instant, afficher tous les scénarios
-        # TODO: Implémenter le filtrage réel
-        self.update_scenario_list()
+        self.scenario_list.clear()
+        
+        for scenario_id, scenario in self.scenarios.items():
+            # Filtrer par catégorie
+            if category == "Tous" or scenario['category'] == category:
+                item = QListWidgetItem()
+                
+                # Icône selon le statut
+                status_icon = "✅" if scenario.get("completed", False) else "⏳"
+                
+                # Texte de l'item avec plus d'informations
+                item_text = f"{status_icon} {scenario['title']}\n   {scenario['difficulty']} • {scenario['duration']}"
+                item.setText(item_text)
+                item.setData(Qt.ItemDataRole.UserRole, scenario_id)
+                
+                # Couleur selon la difficulté
+                if "Facile" in scenario['difficulty']:
+                    item.setForeground(Qt.GlobalColor.green)
+                elif "Moyen" in scenario['difficulty']:
+                    item.setForeground(Qt.GlobalColor.yellow)
+                else:
+                    item.setForeground(Qt.GlobalColor.red)
+                    
+                # Tooltip avec description
+                item.setToolTip(scenario['description'])
+                    
+                self.scenario_list.addItem(item)
         
     def on_scenario_selected(self, item):
         """Gérer la sélection d'un scénario"""

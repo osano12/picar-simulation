@@ -2,6 +2,7 @@
 
 # Interface graphique
 PyQt6>=6.4.0
+QScintilla>=2.13.0
 
 # Calculs scientifiques et simulation
 numpy>=1.21.0

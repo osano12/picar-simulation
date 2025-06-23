@@ -42,30 +42,60 @@ class SimulatorWidget(QWidget, LoggerMixin):
         self.show_grid = True
         self.trail_points = []
         
-        # Obstacles dans l'environnement
+        # Obstacles dans l'environnement - Carte améliorée
         self.obstacles = [
-            QRectF(100, 100, 80, 80),
-            QRectF(600, 200, 60, 120),
-            QRectF(300, 450, 200, 40),
-            QRectF(50, 400, 40, 100),
-            QRectF(500, 50, 120, 60),
+            # Murs périphériques
+            QRectF(50, 50, 700, 20),      # Mur haut
+            QRectF(50, 530, 700, 20),     # Mur bas
+            QRectF(50, 50, 20, 500),      # Mur gauche
+            QRectF(730, 50, 20, 500),     # Mur droit
+            
+            # Obstacles centraux - Labyrinthe simple
+            QRectF(150, 150, 100, 20),    # Obstacle horizontal 1
+            QRectF(350, 200, 20, 100),    # Obstacle vertical 1
+            QRectF(500, 120, 80, 80),     # Carré central
+            QRectF(200, 350, 150, 20),    # Obstacle horizontal 2
+            QRectF(450, 400, 20, 80),     # Obstacle vertical 2
+            
+            # Zones d'intérêt
+            QRectF(100, 250, 60, 60),     # Station de recharge
+            QRectF(600, 300, 80, 40),     # Zone de collecte
+            QRectF(300, 100, 40, 40),     # Point de contrôle 1
+            QRectF(550, 450, 40, 40),     # Point de contrôle 2
         ]
         
-        # Ligne à suivre (pour les exercices de suivi de ligne)
+        # Ligne à suivre améliorée - Circuit plus complexe
         self.line_path = [
-            QPointF(50, 500),
+            # Circuit principal
+            QPointF(100, 500),
             QPointF(200, 500),
-            QPointF(300, 400),
-            QPointF(400, 300),
-            QPointF(500, 200),
-            QPointF(600, 150),
-            QPointF(700, 200),
-            QPointF(750, 300),
-            QPointF(700, 400),
-            QPointF(600, 450),
-            QPointF(400, 480),
-            QPointF(200, 450),
-            QPointF(100, 400),
+            QPointF(300, 450),
+            QPointF(400, 400),
+            QPointF(500, 350),
+            QPointF(600, 300),
+            QPointF(650, 250),
+            QPointF(680, 200),
+            QPointF(650, 150),
+            QPointF(600, 120),
+            QPointF(500, 100),
+            QPointF(400, 120),
+            QPointF(300, 150),
+            QPointF(200, 200),
+            QPointF(150, 250),
+            QPointF(120, 300),
+            QPointF(150, 350),
+            QPointF(200, 400),
+            QPointF(150, 450),
+            QPointF(100, 500),  # Boucle fermée
+        ]
+        
+        # Points d'intérêt sur la carte
+        self.points_of_interest = [
+            {'pos': QPointF(100, 250), 'type': 'charge', 'name': 'Station de recharge'},
+            {'pos': QPointF(600, 300), 'type': 'collect', 'name': 'Zone de collecte'},
+            {'pos': QPointF(300, 100), 'type': 'checkpoint', 'name': 'Point de contrôle A'},
+            {'pos': QPointF(550, 450), 'type': 'checkpoint', 'name': 'Point de contrôle B'},
+            {'pos': QPointF(400, 300), 'type': 'start', 'name': 'Position de départ'},
         ]
         
         self.init_ui()
@@ -216,6 +246,12 @@ class SimulatorWidget(QWidget, LoggerMixin):
         self.simulation_timer.start()
         self.logger.info("Simulation du robot démarrée")
         
+    def enable_movement(self):
+        """Activer le mouvement du robot (même sans simulation active)"""
+        if not self.simulation_timer.isActive():
+            self.simulation_timer.start()
+            self.logger.debug("Timer de mouvement activé")
+        
     def stop_simulation(self):
         """Arrêter la simulation"""
         self.simulation_running = False
@@ -239,6 +275,10 @@ class SimulatorWidget(QWidget, LoggerMixin):
         """Définir la vitesse du robot"""
         self.robot_speed = max(-self.max_speed, min(self.max_speed, speed))
         self.robot_turn_speed = max(-self.max_turn_speed, min(self.max_turn_speed, turn_speed))
+        
+        # Activer le mouvement si une vitesse est définie
+        if abs(speed) > 0 or abs(turn_speed) > 0:
+            self.enable_movement()
         
     def set_max_speed(self, speed):
         """Définir la vitesse maximale"""
@@ -283,7 +323,9 @@ class SimulatorWidget(QWidget, LoggerMixin):
         
     def update_simulation(self):
         """Mettre à jour la simulation"""
-        if not self.simulation_running:
+        # Permettre le mouvement même si la simulation n'est pas "officiellement" démarrée
+        # mais seulement si le robot a une vitesse
+        if not self.simulation_running and abs(self.robot_speed) < 1 and abs(self.robot_turn_speed) < 1:
             return
             
         # Calculer le déplacement
@@ -531,12 +573,71 @@ class SimulatorWidget(QWidget, LoggerMixin):
             painter.drawEllipse(point, 3, 3)
             
     def draw_obstacles(self, painter):
-        """Dessiner les obstacles"""
-        painter.setBrush(QBrush(QColor(180, 60, 60)))
-        painter.setPen(QPen(QColor(220, 100, 100), 2))
-        
-        for obstacle in self.obstacles:
+        """Dessiner les obstacles avec différents styles"""
+        for i, obstacle in enumerate(self.obstacles):
+            if i < 4:  # Murs périphériques
+                painter.setBrush(QBrush(QColor(100, 100, 100)))
+                painter.setPen(QPen(QColor(150, 150, 150), 3))
+            elif i < 9:  # Obstacles centraux
+                painter.setBrush(QBrush(QColor(180, 60, 60)))
+                painter.setPen(QPen(QColor(220, 100, 100), 2))
+            else:  # Zones d'intérêt
+                if i == 9:  # Station de recharge
+                    painter.setBrush(QBrush(QColor(60, 180, 60)))
+                    painter.setPen(QPen(QColor(100, 220, 100), 2))
+                elif i == 10:  # Zone de collecte
+                    painter.setBrush(QBrush(QColor(60, 60, 180)))
+                    painter.setPen(QPen(QColor(100, 100, 220), 2))
+                else:  # Points de contrôle
+                    painter.setBrush(QBrush(QColor(180, 180, 60)))
+                    painter.setPen(QPen(QColor(220, 220, 100), 2))
+            
             painter.drawRect(obstacle)
+            
+        # Dessiner les points d'intérêt avec des icônes
+        self.draw_points_of_interest(painter)
+            
+    def draw_points_of_interest(self, painter):
+        """Dessiner les points d'intérêt avec des icônes"""
+        painter.setFont(QFont("Arial", 8, QFont.Weight.Bold))
+        
+        for poi in self.points_of_interest:
+            pos = poi['pos']
+            poi_type = poi['type']
+            name = poi['name']
+            
+            # Couleur selon le type
+            if poi_type == 'charge':
+                color = QColor(60, 255, 60)
+                icon = "🔋"
+            elif poi_type == 'collect':
+                color = QColor(60, 60, 255)
+                icon = "📦"
+            elif poi_type == 'checkpoint':
+                color = QColor(255, 255, 60)
+                icon = "🏁"
+            elif poi_type == 'start':
+                color = QColor(255, 100, 100)
+                icon = "🏠"
+            else:
+                color = QColor(200, 200, 200)
+                icon = "?"
+            
+            # Dessiner l'icône
+            painter.setPen(QPen(color, 2))
+            painter.setBrush(QBrush(color.darker()))
+            painter.drawEllipse(pos, 15, 15)
+            
+            # Dessiner le texte de l'icône
+            painter.setPen(QPen(QColor(255, 255, 255)))
+            painter.drawText(pos.x() - 5, pos.y() + 3, icon)
+            
+            # Dessiner le nom si on est proche
+            robot_pos = QPointF(self.robot_x, self.robot_y)
+            distance = ((pos.x() - robot_pos.x())**2 + (pos.y() - robot_pos.y())**2)**0.5
+            if distance < 50:
+                painter.setPen(QPen(color))
+                painter.drawText(pos.x() + 20, pos.y() - 10, name)
             
     def draw_trail(self, painter):
         """Dessiner le trail du robot"""

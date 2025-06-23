@@ -24,11 +24,12 @@ from core.logger import setup_logger
 class PiCarXStudio:
     """Classe principale de l'application PiCarX Studio"""
     
-    def __init__(self):
+    def __init__(self, logger=None, args=None):
         self.app = None
         self.main_window = None
         self.splash = None
-        self.logger = setup_logger()
+        self.logger = logger or setup_logger()
+        self.args = args
         
     def create_splash_screen(self):
         """Créer l'écran de démarrage"""
@@ -184,7 +185,7 @@ class PiCarXStudio:
                                f"Impossible de démarrer PiCarX Studio:\n{e}")
             return 1
 
-def main():
+def main(logger=None, args=None):
     """Point d'entrée principal"""
     # Vérifier les dépendances critiques
     try:
@@ -194,7 +195,7 @@ def main():
         print("Installez-le avec: pip install PyQt6")
         return 1
         
-    studio = PiCarXStudio()
+    studio = PiCarXStudio(logger, args)
     return studio.run()
 
 if __name__ == "__main__":
